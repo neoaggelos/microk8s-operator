@@ -1,0 +1,11 @@
+apiVersion: microk8s.canonical.com/v1alpha1
+kind: Configuration
+metadata:
+  name: default
+spec:
+  addonRepositories:
+    - name: core
+      repository: https://github.com/canonical/microk8s-core-addons
+  containerdRegistryConfigs:
+    docker.io: |
+      server = "http://proxy:5150"

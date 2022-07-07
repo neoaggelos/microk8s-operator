@@ -23,6 +23,7 @@ spec:
       labels:
         control-plane: controller-manager
     spec:
+      hostNetwork: true
       securityContext:
         runAsNonRoot: true
         # TODO(user): For common cases that do not require escalating privileges
@@ -32,6 +33,11 @@ spec:
         # versions < 1.19 or on vendors versions which do NOT support this field by default (i.e. Openshift < 4.11 ).
         # seccompProfile:
         #   type: RuntimeDefault
+      volumes:
+      - name: config
+        hostPath:
+          path: /var/snap/microk8s/current
+          type: Directory
       containers:
       - command:
         - /manager
@@ -40,10 +46,9 @@ spec:
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
-        # TODO(user): uncomment for common cases that do not require escalating privileges
-        # capabilities:
-        #   drop:
-        #     - "ALL"
+        volumeMounts:
+          - name: config
+            mountPath: /var/snap/microk8s/current
         livenessProbe:
           httpGet:
             path: /healthz
@@ -61,6 +66,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: SNAP_DATA
+            value: /var/snap/microk8s/current
+          - name: SNAP_COMMON
+            value: /var/snap/microk8s/common
         resources:
           limits:
             cpu: 500m

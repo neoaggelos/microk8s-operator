@@ -1,24 +1,20 @@
-# permissions for end users to edit nodes.
+# permissions for end users to view microk8snodes.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: node-editor-role
+  name: microk8snode-viewer-role
 rules:
 - apiGroups:
   - microk8s.canonical.com
   resources:
-  - nodes
+  - microk8snodes
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - microk8s.canonical.com
   resources:
-  - nodes/status
+  - microk8snodes/status
   verbs:
   - get

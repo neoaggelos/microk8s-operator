@@ -65,8 +65,22 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	if os.Getenv("NODE_NAME") == "" {
-		panic("ERROR! no NODE_NAME is set")
+	nodeName := os.Getenv("NODE_NAME")
+	if nodeName == "" {
+		setupLog.Info("NODE_NAME is not set. It must be set to the current node.")
+		os.Exit(1)
+	}
+
+	snapData := os.Getenv("SNAP_DATA")
+	if snapData == "" {
+		setupLog.Info("SNAP_DATA is not set. It must be set to the SNAP_DATA directory of MicroK8s")
+		os.Exit(1)
+	}
+
+	snapCommon := os.Getenv("SNAP_COMMON")
+	if snapCommon == "" {
+		setupLog.Info("SNAP_COMMON is not set. It must be set to the SNAP_COMMON directory of MicroK8s")
+		os.Exit(1)
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
@@ -94,8 +108,11 @@ func main() {
 	}
 
 	if err = (&controllers.ConfigurationReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:     mgr.GetClient(),
+		Scheme:     mgr.GetScheme(),
+		SnapData:   snapData,
+		SnapCommon: snapCommon,
+		Node:       nodeName,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Configuration")
 		os.Exit(1)

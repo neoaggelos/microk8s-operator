@@ -17,9 +17,10 @@ resources:
   version: v1alpha1
 - api:
     crdVersion: v1
+  controller: true
   domain: canonical.com
   group: microk8s
-  kind: Node
+  kind: MicroK8sNode
   path: github.com/neoaggelos/microk8s-operator/api/v1alpha1
   version: v1alpha1
 version: "3"

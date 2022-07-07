@@ -9,6 +9,7 @@ rules:
   - microk8s.canonical.com
   resources:
   - configurations
+  - microk8snodes
   verbs:
   - create
   - delete
@@ -27,6 +28,7 @@ rules:
   - microk8s.canonical.com
   resources:
   - configurations/status
+  - microk8snodes/status
   verbs:
   - get
   - patch

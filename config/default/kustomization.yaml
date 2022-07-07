@@ -1,5 +1,5 @@
 # Adds namespace to all resources.
-namespace: microk8s-operator-system
+namespace: microk8s
 
 # Value of this field is prepended to the
 # names of all resources, e.g. a deployment named

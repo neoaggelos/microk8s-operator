@@ -52,12 +52,38 @@ spec:
                       type: string
                   required:
                   - name
-                  - reference
                   - repository
                   type: object
                 type: array
-            required:
-            - addonRepositories
+              containerdRegistryConfigs:
+                additionalProperties:
+                  type: string
+                description: ContainerdRegistryConfigs is configuration for the image
+                  registries. The key name is the name of the registry, and the value
+                  is the contents of the hosts.toml file.
+                type: object
+              extraKubeletArgs:
+                description: ExtraKubeletArgs is a list of extra arguments to pass
+                  to kubelet.
+                items:
+                  type: string
+                type: array
+              extraSANIPs:
+                description: ExtraSANIPs is a list of extra IP addresses to include
+                  as SANs to the server certificates.
+                items:
+                  type: string
+                type: array
+              extraSANs:
+                description: ExtraSANs is a list of extra subject alternative names
+                  to add to the server certificates.
+                items:
+                  type: string
+                type: array
+              podCIDR:
+                description: PodCIDR is the CIDR to use for pods. This should match
+                  any CNI configuration.
+                type: string
             type: object
           status:
             description: ConfigurationStatus defines the observed state of Configuration

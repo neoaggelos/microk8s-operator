@@ -1,6 +1,0 @@
-apiVersion: microk8s.canonical.com/v1alpha1
-kind: Node
-metadata:
-  name: node-sample
-spec:
-  # TODO(user): Add fields here

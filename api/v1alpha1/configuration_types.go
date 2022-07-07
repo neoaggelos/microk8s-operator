@@ -29,7 +29,7 @@ type AddonRepositorySpec struct {
 	// Repository is the source to use for the addon repository.
 	Repository string `json:"repository"`
 	// Reference is the a git tag to checkout (leave empty to fetch the default branch).
-	Reference string `json:"reference"`
+	Reference string `json:"reference,omitempty"`
 }
 
 // ConfigurationSpec defines the desired state of Configuration
@@ -38,7 +38,24 @@ type ConfigurationSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// AddonRepositories is the list of addon repositories to configure.
-	AddonRepositories []AddonRepositorySpec `json:"addonRepositories"`
+	AddonRepositories []AddonRepositorySpec `json:"addonRepositories,omitempty"`
+
+	// ContainerdRegistryConfigs is configuration for the image registries.
+	// The key name is the name of the registry, and the value is the contents
+	// of the hosts.toml file.
+	ContainerdRegistryConfigs map[string]string `json:"containerdRegistryConfigs,omitempty"`
+
+	// PodCIDR is the CIDR to use for pods. This should match any CNI configuration.
+	PodCIDR string `json:"podCIDR,omitempty"`
+
+	// ExtraSANs is a list of extra subject alternative names to add to the server certificates.
+	ExtraSANs []string `json:"extraSANs,omitempty"`
+
+	// ExtraSANIPs is a list of extra IP addresses to include as SANs to the server certificates.
+	ExtraSANIPs []string `json:"extraSANIPs,omitempty"`
+
+	// ExtraKubeletArgs is a list of extra arguments to pass to kubelet.
+	ExtraKubeletArgs []string `json:"extraKubeletArgs,omitempty"`
 }
 
 type AddonRepositoryStatus struct {
