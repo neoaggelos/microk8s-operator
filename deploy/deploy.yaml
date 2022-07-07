@@ -1,0 +1,390 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: microk8s
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.0
+  creationTimestamp: null
+  name: configurations.microk8s.canonical.com
+spec:
+  group: microk8s.canonical.com
+  names:
+    kind: Configuration
+    listKind: ConfigurationList
+    plural: configurations
+    singular: configuration
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Configuration is the Schema for the configurations API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ConfigurationSpec defines the desired state of Configuration
+            properties:
+              addonRepositories:
+                description: AddonRepositories is the list of addon repositories to configure.
+                items:
+                  properties:
+                    name:
+                      description: Name is the name used to refer to the addon repository.
+                      type: string
+                    reference:
+                      description: Reference is the a git tag to checkout (leave empty to fetch the default branch).
+                      type: string
+                    repository:
+                      description: Repository is the source to use for the addon repository.
+                      type: string
+                  required:
+                  - name
+                  - repository
+                  type: object
+                type: array
+              containerdRegistryConfigs:
+                additionalProperties:
+                  type: string
+                description: ContainerdRegistryConfigs is configuration for the image registries. The key name is the name of the registry, and the value is the contents of the hosts.toml file.
+                type: object
+              extraKubeletArgs:
+                description: ExtraKubeletArgs is a list of extra arguments to pass to kubelet.
+                items:
+                  type: string
+                type: array
+              extraSANIPs:
+                description: ExtraSANIPs is a list of extra IP addresses to include as SANs to the server certificates.
+                items:
+                  type: string
+                type: array
+              extraSANs:
+                description: ExtraSANs is a list of extra subject alternative names to add to the server certificates.
+                items:
+                  type: string
+                type: array
+              podCIDR:
+                description: PodCIDR is the CIDR to use for pods. This should match any CNI configuration.
+                type: string
+            type: object
+          status:
+            description: ConfigurationStatus defines the observed state of Configuration
+            properties:
+              addonRepositories:
+                description: AddonRepositories is the status of the addon repositories
+                items:
+                  properties:
+                    name:
+                      description: Name is the name of the addon repository
+                      type: string
+                    status:
+                      description: Status is the status of the addon repository
+                      type: string
+                  required:
+                  - name
+                  - status
+                  type: object
+                type: array
+            required:
+            - addonRepositories
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.0
+  creationTimestamp: null
+  name: microk8snodes.microk8s.canonical.com
+spec:
+  group: microk8s.canonical.com
+  names:
+    kind: MicroK8sNode
+    listKind: MicroK8sNodeList
+    plural: microk8snodes
+    singular: microk8snode
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: MicroK8sNode is the Schema for the microk8snodes API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          status:
+            description: MicroK8sNodeStatus defines the observed state of MicroK8sNode
+            properties:
+              version:
+                description: Version is the MicroK8s version that is installed.
+                type: string
+            required:
+            - version
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: microk8s-operator-controller-manager
+  namespace: microk8s
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: microk8s-operator-leader-election-role
+  namespace: microk8s
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: microk8s-operator-manager-role
+rules:
+- apiGroups:
+  - microk8s.canonical.com
+  resources:
+  - configurations
+  - microk8snodes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - microk8s.canonical.com
+  resources:
+  - configurations/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - microk8s.canonical.com
+  resources:
+  - configurations/status
+  - microk8snodes/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: microk8s-operator-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: microk8s-operator-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: microk8s-operator-leader-election-rolebinding
+  namespace: microk8s
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: microk8s-operator-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: microk8s-operator-controller-manager
+  namespace: microk8s
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: microk8s-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: microk8s-operator-manager-role
+subjects:
+- kind: ServiceAccount
+  name: microk8s-operator-controller-manager
+  namespace: microk8s
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: microk8s-operator-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: microk8s-operator-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: microk8s-operator-controller-manager
+  namespace: microk8s
+---
+apiVersion: v1
+data:
+  controller_manager_config.yaml: "apiVersion: controller-runtime.sigs.k8s.io/v1alpha1\nkind: ControllerManagerConfig\nhealth:\n  healthProbeBindAddress: :8081\nmetrics:\n  bindAddress: 127.0.0.1:8080\nwebhook:\n  port: 9443\nleaderElection:\n  leaderElect: true\n  resourceName: bf1786fa.canonical.com\n#   leaderElectionReleaseOnCancel defines if the leader should step down volume \n#   when the Manager ends. This requires the binary to immediately end when the\n#   Manager is stopped, otherwise, this setting is unsafe. Setting this significantly\n#   speeds up voluntary leader transitions as the new leader don't have to wait\n#   LeaseDuration time first.\n#   In the default scaffold provided, the program ends immediately after \n#   the manager stops, so would be fine to enable this option. However, \n#   if you are doing or is intended to do any operation such as perform cleanups \n#   after the manager stops then its usage might be unsafe.\n#   leaderElectionReleaseOnCancel: true\n"
+kind: ConfigMap
+metadata:
+  name: microk8s-operator-manager-config
+  namespace: microk8s
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: microk8s-operator-controller-manager-metrics-service
+  namespace: microk8s
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: microk8s-operator-controller-manager
+  namespace: microk8s
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args: []
+        command:
+        - /manager
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: SNAP_DATA
+          value: /var/snap/microk8s/current
+        - name: SNAP_COMMON
+          value: /var/snap/microk8s/common
+        image: neoaggelos/microk8s-operator:0.0.1-dev2
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - mountPath: /var/snap/microk8s/current
+          name: config
+      hostNetwork: true
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: microk8s-operator-controller-manager
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - hostPath:
+          path: /var/snap/microk8s/current
+          type: Directory
+        name: config

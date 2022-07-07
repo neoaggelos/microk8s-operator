@@ -19,9 +19,9 @@ package controllers
 import (
 	"context"
 	"os"
-	"os/exec"
 	"path/filepath"
 
+	"github.com/go-git/go-git/v5"
 	microk8sv1alpha1 "github.com/neoaggelos/microk8s-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -99,7 +99,11 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			continue
 		}
 
-		if err := exec.CommandContext(ctx, "git", "clone", "--depth=1", repo.Repository, dir).Run(); err != nil {
+		if _, err := git.PlainCloneContext(ctx, dir, false, &git.CloneOptions{
+			URL:      repo.Repository,
+			Depth:    1,
+			Progress: os.Stderr,
+		}); err != nil {
 			log.Error(err, "Failed to fetch repository")
 			continue
 		}
