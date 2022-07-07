@@ -1,0 +1,7 @@
+apiVersion: microk8s.canonical.com/v1alpha1
+kind: Configuration
+metadata:
+  name: default
+spec:
+  addonRepositories: []
+

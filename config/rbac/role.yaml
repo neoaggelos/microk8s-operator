@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - microk8s.canonical.com
+  resources:
+  - configurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - microk8s.canonical.com
+  resources:
+  - configurations/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - microk8s.canonical.com
+  resources:
+  - configurations/status
+  verbs:
+  - get
+  - patch
+  - update
