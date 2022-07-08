@@ -56,9 +56,9 @@ func (c *MicroK8sNodeController) Run(ctx context.Context) error {
 		node.Status.Revision = c.SnapRevision(ctx)
 		node.Status.LastUpdate.Time = time.Now()
 
-		if err := c.Client.Update(ctx, node); err != nil {
-			if apierrors.IsNotFound(err) {
-				err = c.Client.Create(ctx, node)
+		if err := c.Client.Create(ctx, node); err != nil {
+			if apierrors.IsAlreadyExists(err) {
+				err = c.Client.Status().Update(ctx, node)
 			}
 			if err != nil {
 				log.Error(err, "Failed to update node")
