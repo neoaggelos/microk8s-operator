@@ -4,17 +4,29 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"strings"
 
 	microk8sv1alpha1 "github.com/neoaggelos/microk8s-operator/api/v1alpha1"
 )
 
-func mergeMaps[T any](base map[string]T, overrides map[string]T) map[string]T {
-	m := make(map[string]T, len(base)+len(overrides))
+func mergeMaps(base map[string]string, overrides map[string]string) map[string]string {
+	m := make(map[string]string, len(base)+len(overrides))
 	for key, val := range base {
 		m[key] = val
 	}
 	for key, val := range overrides {
 		m[key] = val
+	}
+	return m
+}
+
+func mergeArguments(base map[string]*string, overrides map[string]*string) map[string]*string {
+	m := make(map[string]*string, len(base)+len(overrides))
+	for key, val := range base {
+		m[fmt.Sprintf("--%s", strings.TrimLeft(key, "-"))] = val
+	}
+	for key, val := range overrides {
+		m[fmt.Sprintf("--%s", strings.TrimLeft(key, "-"))] = val
 	}
 	return m
 }
@@ -34,8 +46,8 @@ func mergeConfigSpecs(base, overrides microk8sv1alpha1.ConfigurationSpec) microk
 	if o := overrides.ContainerdEnv; o != "" {
 		result.ContainerdEnv = o
 	}
-	result.ExtraKubeletArgs = mergeMaps(base.ExtraKubeletArgs, overrides.ExtraKubeletArgs)
-	result.ExtraAPIServerArgs = mergeMaps(base.ExtraAPIServerArgs, overrides.ExtraAPIServerArgs)
+	result.ExtraKubeletArgs = mergeArguments(base.ExtraKubeletArgs, overrides.ExtraKubeletArgs)
+	result.ExtraAPIServerArgs = mergeArguments(base.ExtraAPIServerArgs, overrides.ExtraAPIServerArgs)
 
 	return result
 }
