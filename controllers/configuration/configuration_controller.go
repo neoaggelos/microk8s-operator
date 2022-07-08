@@ -40,10 +40,11 @@ type Reconciler struct {
 	Node string
 
 	// Kubernetes cluster information
-	RegistryCertsDir  string
-	ContainerdEnvFile string
-	RestartContainerd func(ctx context.Context) error
-	CSRConfFile       string
+	RegistryCertsDir    string
+	ContainerdEnvFile   string
+	CSRConfFile         string
+	RestartContainerd   func(ctx context.Context) error
+	RefreshCertificates func(ctx context.Context) error
 
 	// MicroK8s specific information
 	AddonsDir string

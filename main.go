@@ -147,6 +147,14 @@ func main() {
 				}
 			}
 		},
+		RefreshCertificates: func(ctx context.Context) error {
+			if _, err := snapClient.SetConf("microk8s", map[string]interface{}{
+				"_operator_": time.Now().String(),
+			}); err != nil {
+				return fmt.Errorf("failed to change snap config: %w", err)
+			}
+			return nil
+		},
 		RegistryCertsDir:  filepath.Join(snapData, "args", "certs.d"),
 		ContainerdEnvFile: filepath.Join(snapData, "args", "containerd-env"),
 		CSRConfFile:       filepath.Join(snapData, "certs", "csr.conf.template"),

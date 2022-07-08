@@ -29,12 +29,10 @@ CN = 127.0.0.1
 subjectAltName = @alt_names
 
 [ alt_names ]
-{{ range $i, $a := .SANs }}
-DNS.{{ $i }} = {{ $a }}
+{{ range $i, $a := .SANs }}DNS.{{ $i + 1 }} = {{ $a }}
 {{ end }}
 
-{{ range $i, $a := .IPs }}
-IP.{{ $i }} = {{ $a }}
+{{ range $i, $a := .IPs }}IP.{{ $i + 1 }} = {{ $a }}
 {{ end }}
 #MOREIPS
 
@@ -71,5 +69,8 @@ func (r *Reconciler) reconcileSANs(ctx context.Context, ips, sans []string) erro
 		return nil
 	}
 	log.FromContext(ctx).Info("updated csr.conf file")
+	if err := r.RefreshCertificates(ctx); err != nil {
+		return fmt.Errorf("failed to refresh the cluster certificates: %w", err)
+	}
 	return nil
 }
