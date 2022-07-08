@@ -1,3 +1,5 @@
+# This configuration will be applied to all cluster nodes
+---
 apiVersion: microk8s.canonical.com/v1alpha1
 kind: Configuration
 metadata:
@@ -14,9 +16,19 @@ spec:
   containerdRegistryConfigs:
     docker.io: |
       server = "https://registry-1.docker.io"
+
+      [host."registry-1.docker.io"]
+        capabilities = ["pull", "resolve"]
     quay.io: |
       server = "https://quay.io"
+
+      [host."quay.io"]
+        capabilities = ["pull", "resolve"]
+  extraKubeletArgs:
+    max-pods: "200"
+  extraKubeAPIServerArgs:
+    kubelet-preferred-address-types: "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP"
   extraSANIPs:
-  - 10.10.10.10
+  - 100.100.100.100
   extraSANs:
   - my.kubernetes.cluster

@@ -1,0 +1,9 @@
+# This configuration will only be applied to a node named 'dev'
+---
+apiVersion: microk8s.canonical.com/v1alpha1
+kind: Configuration
+metadata:
+  name: node.dev
+spec:
+  extraKubeletArgs:
+    max-pods: "100"
