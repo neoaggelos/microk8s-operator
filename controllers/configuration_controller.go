@@ -131,6 +131,7 @@ func (r *ConfigurationReconciler) reconcileContainerdEnv(ctx context.Context, en
 		log.Info("containerd environment file up to date")
 		return nil
 	}
+	log.Info("updated containerd environment file")
 
 	if err := r.RestartContainerd(ctx); err != nil {
 		return fmt.Errorf("failed to restart containerd service: %w", err)
