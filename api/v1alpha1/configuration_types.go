@@ -45,6 +45,9 @@ type ConfigurationSpec struct {
 	// of the hosts.toml file.
 	ContainerdRegistryConfigs map[string]string `json:"containerdRegistryConfigs,omitempty"`
 
+	// ContainerdEnv is environment variables for the containerd service.
+	ContainerdEnv string `json:"containerdEnv,omitempty"`
+
 	// PodCIDR is the CIDR to use for pods. This should match any CNI configuration.
 	PodCIDR string `json:"podCIDR,omitempty"`
 

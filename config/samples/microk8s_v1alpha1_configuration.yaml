@@ -5,4 +5,5 @@ metadata:
 spec:
   addonRepositories: []
   containerdRegistryConfigs:
-    quay.io: ""
+    docker.io: |
+      server = "http://proxy:5050"

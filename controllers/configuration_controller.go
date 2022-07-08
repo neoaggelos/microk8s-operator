@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -41,6 +42,7 @@ type ConfigurationReconciler struct {
 
 	// Kubernetes cluster information
 	RegistryCertsDir  string
+	ContainerdEnvFile string
 	RestartContainerd func(ctx context.Context) error
 
 	// MicroK8s specific information
@@ -80,21 +82,12 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 	spec := mergeConfigSpecs(defaultConfig.Spec, config.Spec)
 
-	for registry, toml := range spec.ContainerdRegistryConfigs {
-		log := log.WithValues("registry", registry)
-		dir := filepath.Join(r.RegistryCertsDir, registry)
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			log.Error(err, "Failed to setup directories for registry")
-			continue
-		}
-
-		if err := os.WriteFile(filepath.Join(dir, "hosts.toml"), []byte(toml), 0660); err != nil {
-			log.Error(err, "Failed to write registry configuration")
-		}
-
-		log.Info("Successfully configured registry")
+	if err := r.reconcileContainerdEnv(ctx, spec.ContainerdEnv); err != nil {
+		log.Error(err, "failed to reconcile ContainerdEnv configuration")
 	}
+	r.reconcileRegistryConfigs(ctx, spec.ContainerdRegistryConfigs)
 
+	// TODO(neoaggelos): move this into a reconcileAddonRepositories
 	for _, repo := range spec.AddonRepositories {
 		log := log.WithValues("repository", repo.Name)
 		dir := filepath.Join(r.AddonsDir, repo.Name)
@@ -122,4 +115,49 @@ func (r *ConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&microk8sv1alpha1.Configuration{}).
 		Complete(r)
+}
+
+func (r *ConfigurationReconciler) reconcileContainerdEnv(ctx context.Context, env string) error {
+	log := log.FromContext(ctx)
+	if env == "" {
+		return nil
+	}
+
+	updated, err := updateFile(r.ContainerdEnvFile, env, 0660)
+	if err != nil {
+		return fmt.Errorf("failed to update containerd environment file: %w", err)
+	}
+	if !updated {
+		log.Info("containerd environment file up to date")
+		return nil
+	}
+
+	if err := r.RestartContainerd(ctx); err != nil {
+		return fmt.Errorf("failed to restart containerd service: %w", err)
+	}
+	log.Info("restarted containerd service")
+	return nil
+}
+
+func (r *ConfigurationReconciler) reconcileRegistryConfigs(ctx context.Context, registries map[string]string) {
+	log := log.FromContext(ctx)
+	for registry, toml := range registries {
+		log := log.WithValues("registry", registry)
+		dir := filepath.Join(r.RegistryCertsDir, registry)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Error(err, "failed to setup directories")
+			continue
+		}
+
+		updated, err := updateFile(filepath.Join(dir, "hosts.toml"), toml, 0660)
+		if err != nil {
+			log.Error(err, "failed to update hosts.toml")
+			continue
+		}
+		if updated {
+			log.Info("updated registry configuration")
+		} else {
+			log.Info("registry configuration is up to date")
+		}
+	}
 }

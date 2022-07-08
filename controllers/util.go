@@ -1,6 +1,10 @@
 package controllers
 
 import (
+	"fmt"
+	"io/fs"
+	"os"
+
 	microk8sv1alpha1 "github.com/neoaggelos/microk8s-operator/api/v1alpha1"
 )
 
@@ -27,6 +31,25 @@ func mergeConfigSpecs(base, overrides microk8sv1alpha1.ConfigurationSpec) microk
 	if o := overrides.PodCIDR; o != "" {
 		result.PodCIDR = o
 	}
+	result.ContainerdEnv = base.ContainerdEnv
+	if o := overrides.ContainerdEnv; o != "" {
+		result.ContainerdEnv = o
+	}
 
 	return result
+}
+
+func updateFile(file string, newContents string, perm fs.FileMode) (bool, error) {
+	b, err := os.ReadFile(file)
+	if err != nil {
+		return false, fmt.Errorf("failed to read file: %w", err)
+	}
+	if string(b) == newContents {
+		return false, nil
+	}
+
+	if err := os.WriteFile(file, []byte(newContents), perm); err != nil {
+		return false, fmt.Errorf("failed to write file: %w", err)
+	}
+	return true, nil
 }
