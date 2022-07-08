@@ -28,13 +28,19 @@ type MicroK8sNodeStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Version is the MicroK8s version that is installed.
-	Version string `json:"version"`
+	// Revision is the installed MicroK8s snap revision.
+	Revision string `json:"revision"`
+
+	// Channel is the channel MicroK8s is tracking.
+	Channel string `json:"channel"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="age"
+// +kubebuilder:printcolumn:name="Revision",type="string",JSONPath=".status.revision",description="Installed revision"
+// +kubebuilder:printcolumn:name="Revision",type="string",JSONPath=".status.channel",description="Tracking channel"
 
 // MicroK8sNode is the Schema for the microk8snodes API
 type MicroK8sNode struct {
@@ -45,6 +51,7 @@ type MicroK8sNode struct {
 }
 
 //+kubebuilder:object:root=true
+//
 
 // MicroK8sNodeList contains a list of MicroK8sNode
 type MicroK8sNodeList struct {

@@ -15,7 +15,20 @@ spec:
     singular: microk8snode
   scope: Cluster
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: age
+      jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    - description: Installed revision
+      jsonPath: .status.revision
+      name: Revision
+      type: string
+    - description: Tracking channel
+      jsonPath: .status.channel
+      name: Revision
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: MicroK8sNode is the Schema for the microk8snodes API
@@ -35,11 +48,15 @@ spec:
           status:
             description: MicroK8sNodeStatus defines the observed state of MicroK8sNode
             properties:
-              version:
-                description: Version is the MicroK8s version that is installed.
+              channel:
+                description: Channel is the channel MicroK8s is tracking.
+                type: string
+              revision:
+                description: Revision is the installed MicroK8s snap revision.
                 type: string
             required:
-            - version
+            - channel
+            - revision
             type: object
         type: object
     served: true

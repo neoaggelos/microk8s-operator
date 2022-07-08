@@ -158,6 +158,15 @@ func main() {
 			}
 			return r[0].Revision.String()
 		},
+		SnapChannel: func(ctx context.Context) string {
+			log := log.FromContext(ctx)
+			r, err := snapClient.List([]string{"microk8s"}, nil)
+			if err != nil || len(r) == 0 {
+				log.Error(err, "failed to get microk8s snap info")
+				return ""
+			}
+			return r[0].TrackingChannel
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Configuration")
 		os.Exit(1)
