@@ -29,10 +29,10 @@ CN = 127.0.0.1
 subjectAltName = @alt_names
 
 [ alt_names ]
-{{ range $i, $a := .SANs }}DNS.{{ $i + 1 }} = {{ $a }}
+{{ range $i, $a := .SANs }}DNS.{{ $i }} = {{ $a }}
 {{ end }}
 
-{{ range $i, $a := .IPs }}IP.{{ $i + 1 }} = {{ $a }}
+{{ range $i, $a := .IPs }}IP.{{ $i }} = {{ $a }}
 {{ end }}
 #MOREIPS
 
