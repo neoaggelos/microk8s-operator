@@ -13,9 +13,10 @@ import (
 )
 
 type SnapInfo struct {
-	Revision string
-	Channel  string
-	Version  string
+	Revision    string
+	Channel     string
+	Version     string
+	Confinement string
 }
 
 type MicroK8sNodeController struct {
@@ -67,6 +68,7 @@ func (c *MicroK8sNodeController) Run(ctx context.Context) error {
 		node.Status.Channel = snapInfo.Channel
 		node.Status.Revision = snapInfo.Revision
 		node.Status.Version = snapInfo.Version
+		node.Status.Confinement = snapInfo.Confinement
 		node.Status.LastUpdate.Time = time.Now()
 
 		if err := c.Client.Status().Update(ctx, node); err != nil {

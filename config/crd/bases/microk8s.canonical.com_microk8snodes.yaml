@@ -16,10 +16,6 @@ spec:
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - description: age
-      jsonPath: .status.lastUpdate
-      name: LastUpdate
-      type: date
     - description: Installed version
       jsonPath: .status.version
       name: Version
@@ -32,6 +28,14 @@ spec:
       jsonPath: .status.channel
       name: Channel
       type: string
+    - description: Snap confinement level
+      jsonPath: .status.confinement
+      name: Confinement
+      type: string
+    - description: age
+      jsonPath: .status.lastUpdate
+      name: LastUpdate
+      type: date
     - description: age
       jsonPath: .metadata.creationTimestamp
       name: Age
@@ -59,6 +63,9 @@ spec:
               channel:
                 description: Channel is the channel MicroK8s is tracking.
                 type: string
+              confinement:
+                description: Confinement is the MicroK8s snap confinement level.
+                type: string
               lastUpdate:
                 description: LastUpdate is the timestamp of the last update of this
                   node.
@@ -72,6 +79,7 @@ spec:
                 type: string
             required:
             - channel
+            - confinement
             - lastUpdate
             - revision
             - version

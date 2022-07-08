@@ -178,9 +178,10 @@ func main() {
 				return controllers.SnapInfo{}, fmt.Errorf("no microk8s snap found")
 			}
 			return controllers.SnapInfo{
-				Revision: r[0].Revision.String(),
-				Channel:  r[0].Channel,
-				Version:  r[0].Version,
+				Revision:    r[0].Revision.String(),
+				Channel:     r[0].Channel,
+				Version:     r[0].Version,
+				Confinement: r[0].Confinement,
 			}, nil
 		},
 	}
