@@ -47,7 +47,7 @@ spec:
       - command:
         - /manager
         args: []
-        image: neoaggelos/microk8s-operator:0.0.1-dev10
+        image: neoaggelos/microk8s-operator:0.0.1-dev11
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
