@@ -12,8 +12,7 @@ func ptr(s string) *string {
 }
 
 func TestUpdateServiceArguments(t *testing.T) {
-	initialArguments := `
---key=value
+	initialArguments := `--key=value
 --other=other-value
 --with-space value2
 `
@@ -76,7 +75,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 		},
 		{
 			name:   "delete-non-existent",
-			update: map[string]*string{"--new-opt": nil},
+			update: map[string]*string{"--new-opt": nil, "new-opt-2": nil},
 			expectedArguments: []string{
 				"--key=value",
 				"--other=other-value",

@@ -51,7 +51,7 @@ func updateServiceArguments(argumentsFile string, updateMap map[string]*string) 
 	}
 
 	for key, value := range updateMap {
-		if _, argExists := existingArguments[key]; !argExists {
+		if _, argExists := existingArguments[key]; !argExists && value != nil {
 			newArguments = append(newArguments, fmt.Sprintf("%s=%s", key, *value))
 		}
 	}
