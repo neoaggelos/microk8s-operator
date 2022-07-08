@@ -41,12 +41,6 @@ func (c *MicroK8sNodeController) Run(ctx context.Context) error {
 	}()
 
 	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(c.Interval):
-		}
-
 		node := &microk8sv1alpha1.MicroK8sNode{}
 		if err := c.Client.Get(ctx, types.NamespacedName{Name: c.Node}, node); err != nil {
 			if apierrors.IsNotFound(err) {
@@ -67,6 +61,12 @@ func (c *MicroK8sNodeController) Run(ctx context.Context) error {
 
 		if err := c.Client.Status().Update(ctx, node); err != nil {
 			log.Error(err, "failed to update node")
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(c.Interval):
 		}
 	}
 }

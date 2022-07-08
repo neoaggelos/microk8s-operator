@@ -167,7 +167,7 @@ func main() {
 
 	nodeController := &controllers.MicroK8sNodeController{
 		Client:   mgr.GetClient(),
-		Interval: 5 * time.Second,
+		Interval: time.Minute,
 		Node:     nodeName,
 		SnapRevision: func(ctx context.Context) string {
 			log := log.FromContext(ctx)
