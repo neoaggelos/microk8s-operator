@@ -1,6 +1,0 @@
-```
-ubuntu@dev:~$ microk8s.kubectl get microk8snode
-NAME      AGE   REVISION
-dev       29m       3561
-newnode   23m       3560
-```

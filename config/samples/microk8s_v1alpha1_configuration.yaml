@@ -3,7 +3,20 @@ kind: Configuration
 metadata:
   name: default
 spec:
-  addonRepositories: []
+  addonRepositories:
+  - name: core
+    repository: https://github.com/canonical/microk8s-core-addons
+  - name: community
+    repository: https://github.com/canonical/microk8s-community-addons
+  containerdEnv: |
+    ulimit -n 65536 || true
+    ulimit -l 16384 || true
   containerdRegistryConfigs:
     docker.io: |
-      server = "http://proxy:5050"
+      server = "https://registry-1.docker.io"
+    quay.io: |
+      server = "https://quay.io"
+  extraSANIPs:
+  - 10.10.10.10
+  extraSANs:
+  - my.kubernetes.cluster

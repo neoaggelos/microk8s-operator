@@ -1,4 +1,0 @@
-apiVersion: microk8s.canonical.com/v1alpha1
-kind: MicroK8sNode
-metadata:
-  name: microk8snode-sample
