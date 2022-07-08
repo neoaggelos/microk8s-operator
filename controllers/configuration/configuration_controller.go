@@ -86,6 +86,9 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		log.Error(err, "failed to reconcile ContainerdEnv configuration")
 	}
 	r.reconcileRegistryConfigs(ctx, spec.ContainerdRegistryConfigs)
+	if err := r.reconcileSANs(ctx, spec.ExtraSANIPs, spec.ExtraSANs); err != nil {
+		log.Error(err, "failed to reconcile SANs")
+	}
 
 	// TODO(neoaggelos): move this into a reconcileAddonRepositories
 	for _, repo := range spec.AddonRepositories {
