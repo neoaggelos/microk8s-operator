@@ -130,16 +130,16 @@ spec:
       jsonPath: .status.lastUpdate
       name: LastUpdate
       type: date
+    - description: Installed version
+      jsonPath: .status.version
+      name: Version
+      type: string
     - description: Installed revision
       jsonPath: .status.revision
       name: Revision
       type: string
     - description: Tracking channel
       jsonPath: .status.channel
-      name: Channel
-      type: string
-    - description: Installed version
-      jsonPath: .status.version
       name: Channel
       type: string
     - description: age
