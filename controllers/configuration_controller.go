@@ -47,7 +47,7 @@ type ConfigurationReconciler struct {
 
 	// MicroK8s specific information
 	AddonsDir    string
-	SnapRevision func() string
+	SnapRevision func(ctx context.Context) string
 }
 
 //+kubebuilder:rbac:groups=microk8s.canonical.com,resources=configurations;microk8snodes,verbs=get;list;watch;create;update;patch;delete
@@ -135,7 +135,7 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 
-	node.Status.Version = r.SnapRevision()
+	node.Status.Version = r.SnapRevision(ctx)
 	if err := r.Client.Status().Update(ctx, node); err != nil {
 		log.Error(err, "Failed to patch microk8s node")
 	}

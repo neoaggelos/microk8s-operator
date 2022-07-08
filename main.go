@@ -35,6 +35,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	microk8sv1alpha1 "github.com/neoaggelos/microk8s-operator/api/v1alpha1"
@@ -113,7 +114,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	snapClient := snapdclient.New(nil)
+	snapClient := snapdclient.New(&snapdclient.Config{
+		Socket: os.Getenv("SNAP_SOCKET"),
+	})
 
 	if err = (&controllers.ConfigurationReconciler{
 		Client: mgr.GetClient(),
@@ -146,9 +149,11 @@ func main() {
 		RegistryCertsDir: filepath.Join(snapData, "args", "certs.d"),
 
 		AddonsDir: filepath.Join(snapCommon, "addons"),
-		SnapRevision: func() string {
+		SnapRevision: func(ctx context.Context) string {
+			log := log.FromContext(ctx)
 			r, err := snapClient.List([]string{"microk8s"}, nil)
 			if err != nil || len(r) == 0 {
+				log.Error(err, "failed to get microk8s snap info")
 				return ""
 			}
 			return r[0].Revision.String()
