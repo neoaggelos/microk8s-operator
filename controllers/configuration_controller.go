@@ -100,9 +100,8 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 
 		if _, err := git.PlainCloneContext(ctx, dir, false, &git.CloneOptions{
-			URL:      repo.Repository,
-			Depth:    1,
-			Progress: os.Stderr,
+			URL:   repo.Repository,
+			Depth: 1,
 		}); err != nil {
 			log.Error(err, "Failed to fetch repository")
 			continue
