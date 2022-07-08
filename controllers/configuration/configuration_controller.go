@@ -40,11 +40,16 @@ type Reconciler struct {
 	Node string
 
 	// Kubernetes cluster information
-	RegistryCertsDir    string
-	ContainerdEnvFile   string
-	CSRConfFile         string
-	RestartContainerd   func(ctx context.Context) error
-	RefreshCertificates func(ctx context.Context) error
+	RegistryCertsDir      string
+	ContainerdEnvFile     string
+	CSRConfFile           string
+	KubeletArgsFile       string
+	KubeAPIServerArgsFile string
+
+	RefreshCertificates  func(ctx context.Context) error
+	RestartContainerd    func(ctx context.Context) error
+	RestartKubelet       func(ctx context.Context) error
+	RestartKubeAPIServer func(ctx context.Context) error
 
 	// MicroK8s specific information
 	AddonsDir string
@@ -89,6 +94,12 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	r.reconcileRegistryConfigs(ctx, spec.ContainerdRegistryConfigs)
 	if err := r.reconcileSANs(ctx, spec.ExtraSANIPs, spec.ExtraSANs); err != nil {
 		log.Error(err, "failed to reconcile SANs")
+	}
+	if err := r.reconcileKubeletArgs(ctx, spec.ExtraKubeletArgs); err != nil {
+		log.Error(err, "failed to update kubelet arguments")
+	}
+	if err := r.reconcileKubeAPIServerArgs(ctx, spec.ExtraAPIServerArgs); err != nil {
+		log.Error(err, "failed to update kube-apiserver arguments")
 	}
 
 	// TODO(neoaggelos): move this into a reconcileAddonRepositories

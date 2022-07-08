@@ -141,8 +141,33 @@ func (in *ConfigurationSpec) DeepCopyInto(out *ConfigurationSpec) {
 	}
 	if in.ExtraKubeletArgs != nil {
 		in, out := &in.ExtraKubeletArgs, &out.ExtraKubeletArgs
-		*out = make([]string, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]*string, len(*in))
+		for key, val := range *in {
+			var outVal *string
+			if val == nil {
+				(*out)[key] = nil
+			} else {
+				in, out := &val, &outVal
+				*out = new(string)
+				**out = **in
+			}
+			(*out)[key] = outVal
+		}
+	}
+	if in.ExtraAPIServerArgs != nil {
+		in, out := &in.ExtraAPIServerArgs, &out.ExtraAPIServerArgs
+		*out = make(map[string]*string, len(*in))
+		for key, val := range *in {
+			var outVal *string
+			if val == nil {
+				(*out)[key] = nil
+			} else {
+				in, out := &val, &outVal
+				*out = new(string)
+				**out = **in
+			}
+			(*out)[key] = outVal
+		}
 	}
 }
 

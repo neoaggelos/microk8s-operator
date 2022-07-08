@@ -56,6 +56,29 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+func restartService(ctx context.Context, snapClient *snapdclient.Client, service string) error {
+	changeID, err := snapClient.Restart([]string{"microk8s.daemon-containerd"}, client.RestartOptions{Reload: false})
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	for {
+		if change, err := snapClient.Change(changeID); err != nil {
+			return err
+		} else if change.Ready {
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timed out waiting for containerd restart")
+		case <-time.After(time.Second):
+		}
+	}
+}
+
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
@@ -126,26 +149,13 @@ func main() {
 		Node: nodeName,
 
 		RestartContainerd: func(ctx context.Context) error {
-			changeID, err := snapClient.Restart([]string{"microk8s.daemon-containerd"}, client.RestartOptions{Reload: false})
-			if err != nil {
-				return err
-			}
-
-			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-			defer cancel()
-
-			for {
-				if change, err := snapClient.Change(changeID); err != nil {
-					return err
-				} else if change.Ready {
-					return nil
-				}
-				select {
-				case <-ctx.Done():
-					return fmt.Errorf("timed out waiting for containerd restart")
-				case <-time.After(time.Second):
-				}
-			}
+			return restartService(ctx, snapClient, "microk8s.daemon-containerd")
+		},
+		RestartKubelet: func(ctx context.Context) error {
+			return restartService(ctx, snapClient, "microk8s.daemon-kubelite")
+		},
+		RestartKubeAPIServer: func(ctx context.Context) error {
+			return restartService(ctx, snapClient, "microk8s.daemon-kubelite")
 		},
 		RefreshCertificates: func(ctx context.Context) error {
 			if _, err := snapClient.SetConf("microk8s", map[string]interface{}{
@@ -155,9 +165,11 @@ func main() {
 			}
 			return nil
 		},
-		RegistryCertsDir:  filepath.Join(snapData, "args", "certs.d"),
-		ContainerdEnvFile: filepath.Join(snapData, "args", "containerd-env"),
-		CSRConfFile:       filepath.Join(snapData, "certs", "csr.conf.template"),
+		CSRConfFile:           filepath.Join(snapData, "certs", "csr.conf.template"),
+		RegistryCertsDir:      filepath.Join(snapData, "args", "certs.d"),
+		ContainerdEnvFile:     filepath.Join(snapData, "args", "containerd-env"),
+		KubeletArgsFile:       filepath.Join(snapData, "args", "kubelet"),
+		KubeAPIServerArgsFile: filepath.Join(snapData, "args", "kube-apiserver"),
 
 		AddonsDir: filepath.Join(snapCommon, "addons"),
 	}).SetupWithManager(mgr); err != nil {

@@ -66,12 +66,16 @@ spec:
                   registries. The key name is the name of the registry, and the value
                   is the contents of the hosts.toml file.
                 type: object
-              extraKubeletArgs:
-                description: ExtraKubeletArgs is a list of extra arguments to pass
-                  to kubelet.
-                items:
+              extraKubeAPIServerArgs:
+                additionalProperties:
                   type: string
-                type: array
+                description: ExtraAPIServerArgs are extra arguments to pass to kube-apiserver.
+                type: object
+              extraKubeletArgs:
+                additionalProperties:
+                  type: string
+                description: ExtraKubeletArgs are extra arguments to pass to kubelet.
+                type: object
               extraSANIPs:
                 description: ExtraSANIPs is a list of extra IP addresses to include
                   as SANs to the server certificates.

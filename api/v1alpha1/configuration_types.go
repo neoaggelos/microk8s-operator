@@ -57,8 +57,11 @@ type ConfigurationSpec struct {
 	// ExtraSANIPs is a list of extra IP addresses to include as SANs to the server certificates.
 	ExtraSANIPs []string `json:"extraSANIPs,omitempty"`
 
-	// ExtraKubeletArgs is a list of extra arguments to pass to kubelet.
-	ExtraKubeletArgs []string `json:"extraKubeletArgs,omitempty"`
+	// ExtraKubeletArgs are extra arguments to pass to kubelet.
+	ExtraKubeletArgs map[string]*string `json:"extraKubeletArgs,omitempty"`
+
+	// ExtraAPIServerArgs are extra arguments to pass to kube-apiserver.
+	ExtraAPIServerArgs map[string]*string `json:"extraKubeAPIServerArgs,omitempty"`
 }
 
 type AddonRepositoryStatus struct {
