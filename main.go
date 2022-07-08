@@ -57,7 +57,7 @@ func init() {
 }
 
 func restartService(ctx context.Context, snapClient *snapdclient.Client, service string) error {
-	changeID, err := snapClient.Restart([]string{"microk8s.daemon-containerd"}, client.RestartOptions{Reload: false})
+	changeID, err := snapClient.Restart([]string{service}, client.RestartOptions{Reload: false})
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func restartService(ctx context.Context, snapClient *snapdclient.Client, service
 		}
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("timed out waiting for containerd restart")
+			return fmt.Errorf("timed out waiting for restart")
 		case <-time.After(time.Second):
 		}
 	}

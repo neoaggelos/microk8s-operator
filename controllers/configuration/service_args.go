@@ -24,6 +24,11 @@ func updateServiceArguments(argumentsFile string, updateMap map[string]*string) 
 		return false, fmt.Errorf("failed to read arguments file: %w", err)
 	}
 
+	for key, value := range updateMap {
+		delete(updateMap, key)
+		updateMap[fmt.Sprintf("--%s", strings.TrimLeft(key, "-"))] = value
+	}
+
 	existingArguments := make(map[string]struct{}, len(arguments))
 	newArguments := make([]string, 0, len(arguments))
 	for _, line := range strings.Split(string(arguments), "\n") {
@@ -35,6 +40,7 @@ func updateServiceArguments(argumentsFile string, updateMap map[string]*string) 
 		// handle "--argument value" and "--argument=value" variants
 		key := strings.SplitN(line, " ", 2)[0]
 		key = strings.SplitN(key, "=", 2)[0]
+		key = fmt.Sprintf("--%s", strings.TrimLeft(key, "-"))
 		existingArguments[key] = struct{}{}
 		if newValue, ok := updateMap[key]; ok {
 			if newValue == nil {
@@ -51,6 +57,7 @@ func updateServiceArguments(argumentsFile string, updateMap map[string]*string) 
 	}
 
 	for key, value := range updateMap {
+		key = fmt.Sprintf("--%s", strings.TrimLeft(key, "-"))
 		if _, argExists := existingArguments[key]; !argExists && value != nil {
 			newArguments = append(newArguments, fmt.Sprintf("%s=%s", key, *value))
 		}

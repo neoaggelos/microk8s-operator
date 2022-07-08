@@ -25,7 +25,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 	}{
 		{
 			name:   "simple-update",
-			update: map[string]*string{"--key": ptr("new-value")},
+			update: map[string]*string{"key": ptr("new-value")},
 			expectedArguments: []string{
 				"--key=new-value",
 				"--other=other-value",
@@ -35,7 +35,7 @@ func TestUpdateServiceArguments(t *testing.T) {
 		},
 		{
 			name:   "update-many-delete-one",
-			update: map[string]*string{"--key": ptr("new-value"), "--other": ptr("other-new-value"), "--with-space": nil},
+			update: map[string]*string{"--key": ptr("new-value"), "--other": ptr("other-new-value"), "with-space": nil},
 			expectedArguments: []string{
 				"--key=new-value",
 				"--other=other-new-value",
