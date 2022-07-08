@@ -149,6 +149,7 @@ func main() {
 		},
 		RegistryCertsDir:  filepath.Join(snapData, "args", "certs.d"),
 		ContainerdEnvFile: filepath.Join(snapData, "args", "containerd-env"),
+		CSRConfFile:       filepath.Join(snapData, "certs", "csr.conf.template"),
 
 		AddonsDir: filepath.Join(snapCommon, "addons"),
 	}).SetupWithManager(mgr); err != nil {
