@@ -18,6 +18,7 @@ package configuration
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -71,7 +72,7 @@ type Reconciler struct {
 func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	if req.Name != "default" && req.Name != r.Node {
+	if req.Name != "default" && req.Name != fmt.Sprintf("node.%s", r.Node) {
 		log.Info("Ignoring change for other node", "name", req.Name)
 		return ctrl.Result{}, nil
 	}
@@ -82,7 +83,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return ctrl.Result{}, err
 	}
 	config := &microk8sv1alpha1.Configuration{}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: r.Node}, config); err != nil && !apierrors.IsNotFound(err) {
+	if err := r.Client.Get(ctx, types.NamespacedName{Name: fmt.Sprintf("node.%s", r.Node)}, config); err != nil && !apierrors.IsNotFound(err) {
 		log.Error(err, "Failed to get config object for node")
 		return ctrl.Result{}, err
 	}
