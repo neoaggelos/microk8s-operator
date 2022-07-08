@@ -14,11 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package configuration
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -32,8 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// ConfigurationReconciler reconciles a Configuration object
-type ConfigurationReconciler struct {
+// Reconciler reconciles a Configuration object
+type Reconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 
@@ -44,6 +43,7 @@ type ConfigurationReconciler struct {
 	RegistryCertsDir  string
 	ContainerdEnvFile string
 	RestartContainerd func(ctx context.Context) error
+	CSRConfFile       string
 
 	// MicroK8s specific information
 	AddonsDir string
@@ -62,7 +62,7 @@ type ConfigurationReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.1/pkg/reconcile
-func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
 	if req.Name != "default" && req.Name != r.Node {
@@ -111,54 +111,8 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&microk8sv1alpha1.Configuration{}).
 		Complete(r)
-}
-
-func (r *ConfigurationReconciler) reconcileContainerdEnv(ctx context.Context, env string) error {
-	log := log.FromContext(ctx)
-	if env == "" {
-		return nil
-	}
-
-	updated, err := updateFile(r.ContainerdEnvFile, env, 0660)
-	if err != nil {
-		return fmt.Errorf("failed to update containerd environment file: %w", err)
-	}
-	if !updated {
-		log.Info("containerd environment file up to date")
-		return nil
-	}
-	log.Info("updated containerd environment file")
-
-	if err := r.RestartContainerd(ctx); err != nil {
-		return fmt.Errorf("failed to restart containerd service: %w", err)
-	}
-	log.Info("restarted containerd service")
-	return nil
-}
-
-func (r *ConfigurationReconciler) reconcileRegistryConfigs(ctx context.Context, registries map[string]string) {
-	log := log.FromContext(ctx)
-	for registry, toml := range registries {
-		log := log.WithValues("registry", registry)
-		dir := filepath.Join(r.RegistryCertsDir, registry)
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			log.Error(err, "failed to setup directories")
-			continue
-		}
-
-		updated, err := updateFile(filepath.Join(dir, "hosts.toml"), toml, 0660)
-		if err != nil {
-			log.Error(err, "failed to update hosts.toml")
-			continue
-		}
-		if updated {
-			log.Info("updated registry configuration")
-		} else {
-			log.Info("registry configuration is up to date")
-		}
-	}
 }

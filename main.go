@@ -39,7 +39,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	microk8sv1alpha1 "github.com/neoaggelos/microk8s-operator/api/v1alpha1"
-	"github.com/neoaggelos/microk8s-operator/controllers"
+	"github.com/neoaggelos/microk8s-operator/controllers/configuration"
+	"github.com/neoaggelos/microk8s-operator/controllers/microk8snode"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -118,7 +119,7 @@ func main() {
 		Socket: os.Getenv("SNAP_SOCKET"),
 	})
 
-	if err = (&controllers.ConfigurationReconciler{
+	if err = (&configuration.Reconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 
@@ -165,19 +166,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	nodeController := &controllers.MicroK8sNodeController{
+	nodeController := &microk8snode.Controller{
 		Client:   mgr.GetClient(),
 		Interval: time.Minute,
 		Node:     nodeName,
-		SnapInfo: func(ctx context.Context) (controllers.SnapInfo, error) {
+		SnapInfo: func(ctx context.Context) (microk8snode.SnapInfo, error) {
 			r, err := snapClient.List([]string{"microk8s"}, nil)
 			if err != nil {
-				return controllers.SnapInfo{}, err
+				return microk8snode.SnapInfo{}, err
 			}
 			if len(r) == 0 {
-				return controllers.SnapInfo{}, fmt.Errorf("no microk8s snap found")
+				return microk8snode.SnapInfo{}, fmt.Errorf("no microk8s snap found")
 			}
-			return controllers.SnapInfo{
+			return microk8snode.SnapInfo{
 				Revision:    r[0].Revision.String(),
 				Channel:     r[0].Channel,
 				Version:     r[0].Version,

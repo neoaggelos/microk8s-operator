@@ -1,4 +1,4 @@
-package controllers
+package microk8snode
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type SnapInfo struct {
 	Confinement string
 }
 
-type MicroK8sNodeController struct {
+type Controller struct {
 	Client   client.Client
 	Interval time.Duration
 
@@ -27,7 +27,7 @@ type MicroK8sNodeController struct {
 	SnapInfo func(ctx context.Context) (SnapInfo, error)
 }
 
-func (c *MicroK8sNodeController) Run(ctx context.Context) error {
+func (c *Controller) Run(ctx context.Context) error {
 	log := log.FromContext(ctx).WithValues("node", c.Node)
 	// cleanup on exit
 	defer func() {
