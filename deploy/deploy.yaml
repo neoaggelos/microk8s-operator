@@ -55,6 +55,9 @@ spec:
                   - repository
                   type: object
                 type: array
+              containerdEnv:
+                description: ContainerdEnv is environment variables for the containerd service.
+                type: string
               containerdRegistryConfigs:
                 additionalProperties:
                   type: string
@@ -135,6 +138,10 @@ spec:
       jsonPath: .status.channel
       name: Channel
       type: string
+    - description: Installed version
+      jsonPath: .status.version
+      name: Channel
+      type: string
     - description: age
       jsonPath: .metadata.creationTimestamp
       name: Age
@@ -165,10 +172,14 @@ spec:
               revision:
                 description: Revision is the installed MicroK8s snap revision.
                 type: string
+              version:
+                description: Version is the MicroK8s snap version.
+                type: string
             required:
             - channel
             - lastUpdate
             - revision
+            - version
             type: object
         type: object
     served: true
@@ -380,7 +391,7 @@ spec:
           value: /host/var-snap-microk8s/common
         - name: SNAP_SOCKET
           value: /host/run-snapd.socket
-        image: neoaggelos/microk8s-operator:0.0.1-dev8
+        image: neoaggelos/microk8s-operator:0.0.1-dev9
         livenessProbe:
           httpGet:
             path: /healthz

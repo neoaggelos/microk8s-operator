@@ -36,7 +36,6 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	microk8sv1alpha1 "github.com/neoaggelos/microk8s-operator/api/v1alpha1"
@@ -170,23 +169,19 @@ func main() {
 		Client:   mgr.GetClient(),
 		Interval: time.Minute,
 		Node:     nodeName,
-		SnapRevision: func(ctx context.Context) string {
-			log := log.FromContext(ctx)
+		SnapInfo: func(ctx context.Context) (controllers.SnapInfo, error) {
 			r, err := snapClient.List([]string{"microk8s"}, nil)
-			if err != nil || len(r) == 0 {
-				log.Error(err, "failed to get microk8s snap info")
-				return ""
+			if err != nil {
+				return controllers.SnapInfo{}, err
 			}
-			return r[0].Revision.String()
-		},
-		SnapChannel: func(ctx context.Context) string {
-			log := log.FromContext(ctx)
-			r, err := snapClient.List([]string{"microk8s"}, nil)
-			if err != nil || len(r) == 0 {
-				log.Error(err, "failed to get microk8s snap info")
-				return ""
+			if len(r) == 0 {
+				return controllers.SnapInfo{}, fmt.Errorf("no microk8s snap found")
 			}
-			return r[0].TrackingChannel
+			return controllers.SnapInfo{
+				Revision: r[0].Revision.String(),
+				Channel:  r[0].Channel,
+				Version:  r[0].Version,
+			}, nil
 		},
 	}
 

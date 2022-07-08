@@ -12,13 +12,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+type SnapInfo struct {
+	Revision string
+	Channel  string
+	Version  string
+}
+
 type MicroK8sNodeController struct {
 	Client   client.Client
 	Interval time.Duration
 
-	Node         string
-	SnapRevision func(ctx context.Context) string
-	SnapChannel  func(ctx context.Context) string
+	Node     string
+	SnapInfo func(ctx context.Context) (SnapInfo, error)
 }
 
 func (c *MicroK8sNodeController) Run(ctx context.Context) error {
@@ -36,7 +41,7 @@ func (c *MicroK8sNodeController) Run(ctx context.Context) error {
 			},
 		}
 		if err := c.Client.Delete(ctx, node, &client.DeleteOptions{}); err != nil {
-			log.Error(err, "Failed to delete node during cleanup")
+			log.Error(err, "failed to delete node during cleanup")
 		}
 	}()
 
@@ -55,8 +60,13 @@ func (c *MicroK8sNodeController) Run(ctx context.Context) error {
 			}
 		}
 
-		node.Status.Channel = c.SnapChannel(ctx)
-		node.Status.Revision = c.SnapRevision(ctx)
+		snapInfo, err := c.SnapInfo(ctx)
+		if err != nil {
+			log.Error(err, "failed to retrieve microk8s snap info")
+		}
+		node.Status.Channel = snapInfo.Channel
+		node.Status.Revision = snapInfo.Revision
+		node.Status.Version = snapInfo.Version
 		node.Status.LastUpdate.Time = time.Now()
 
 		if err := c.Client.Status().Update(ctx, node); err != nil {

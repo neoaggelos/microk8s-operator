@@ -55,6 +55,10 @@ spec:
                   - repository
                   type: object
                 type: array
+              containerdEnv:
+                description: ContainerdEnv is environment variables for the containerd
+                  service.
+                type: string
               containerdRegistryConfigs:
                 additionalProperties:
                   type: string

@@ -36,6 +36,9 @@ type MicroK8sNodeStatus struct {
 
 	// Channel is the channel MicroK8s is tracking.
 	Channel string `json:"channel"`
+
+	// Version is the MicroK8s snap version.
+	Version string `json:"version"`
 }
 
 //+kubebuilder:object:root=true
@@ -44,6 +47,7 @@ type MicroK8sNodeStatus struct {
 // +kubebuilder:printcolumn:name="LastUpdate",type="date",JSONPath=".status.lastUpdate",description="age"
 // +kubebuilder:printcolumn:name="Revision",type="string",JSONPath=".status.revision",description="Installed revision"
 // +kubebuilder:printcolumn:name="Channel",type="string",JSONPath=".status.channel",description="Tracking channel"
+// +kubebuilder:printcolumn:name="Channel",type="string",JSONPath=".status.version",description="Installed version"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="age"
 
 // MicroK8sNode is the Schema for the microk8snodes API
