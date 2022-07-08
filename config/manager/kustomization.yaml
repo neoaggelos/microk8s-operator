@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: neoaggelos/microk8s-operator
-  newTag: 0.0.1-dev18
+  newTag: 0.0.1-dev19
