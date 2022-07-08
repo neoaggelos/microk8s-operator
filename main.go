@@ -149,7 +149,7 @@ func main() {
 		},
 		RefreshCertificates: func(ctx context.Context) error {
 			if _, err := snapClient.SetConf("microk8s", map[string]interface{}{
-				"_operator_": time.Now().String(),
+				"operator-configure-hook": time.Now().String(),
 			}); err != nil {
 				return fmt.Errorf("failed to change snap config: %w", err)
 			}
