@@ -24,7 +24,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	microk8sv1alpha1 "github.com/neoaggelos/microk8s-operator/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -113,24 +112,6 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 
 		log.Info("Configured addon repository")
-	}
-
-	node := &microk8sv1alpha1.MicroK8sNode{}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: r.Node}, node); err != nil {
-		if !apierrors.IsNotFound(err) {
-			log.Error(err, "Failed to retrieve current node")
-			return ctrl.Result{}, err
-		}
-
-		if err := r.Client.Create(ctx, &microk8sv1alpha1.MicroK8sNode{ObjectMeta: metav1.ObjectMeta{Name: r.Node}}); err != nil {
-			log.Error(err, "Failed to create microk8s node")
-			return ctrl.Result{}, err
-		}
-		log.Info("Initialized microk8s node")
-	}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: r.Node}, node); err != nil {
-		log.Error(err, "Failed to retrieve current node")
-		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil

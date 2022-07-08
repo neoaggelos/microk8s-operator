@@ -7,6 +7,7 @@ import (
 	microk8sv1alpha1 "github.com/neoaggelos/microk8s-operator/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -46,23 +47,26 @@ func (c *MicroK8sNodeController) Run(ctx context.Context) error {
 		case <-time.After(c.Interval):
 		}
 
-		node := &microk8sv1alpha1.MicroK8sNode{
-			ObjectMeta: v1.ObjectMeta{
-				Name: c.Node,
-			},
+		node := &microk8sv1alpha1.MicroK8sNode{}
+		if err := c.Client.Get(ctx, types.NamespacedName{Name: c.Node}, node); err != nil {
+			if apierrors.IsNotFound(err) {
+				if err := c.Client.Create(ctx, &microk8sv1alpha1.MicroK8sNode{ObjectMeta: v1.ObjectMeta{Name: c.Node}}); err != nil {
+					log.Error(err, "failed to create node")
+				}
+			}
+
+			if err := c.Client.Get(ctx, types.NamespacedName{Name: c.Node}, node); err != nil {
+				log.Error(err, "failed to get node")
+				continue
+			}
 		}
 
 		node.Status.Channel = c.SnapChannel(ctx)
 		node.Status.Revision = c.SnapRevision(ctx)
 		node.Status.LastUpdate.Time = time.Now()
 
-		if err := c.Client.Create(ctx, node); err != nil {
-			if apierrors.IsAlreadyExists(err) {
-				err = c.Client.Status().Update(ctx, node)
-			}
-			if err != nil {
-				log.Error(err, "Failed to update node")
-			}
+		if err := c.Client.Status().Update(ctx, node); err != nil {
+			log.Error(err, "failed to update node")
 		}
 	}
 }
