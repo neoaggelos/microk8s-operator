@@ -1,3 +1,5 @@
+//go:build suite_test
+
 /*
 Copyright 2022 Angelos Kolaitis.
 
