@@ -38,9 +38,16 @@ type ConfigurationReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 
-	Node       string
-	SnapData   string
-	SnapCommon string
+	// Node information
+	Node string
+
+	// Kubernetes cluster information
+	RegistryCertsDir  string
+	RestartContainerd func(ctx context.Context) error
+
+	// MicroK8s specific information
+	AddonsDir    string
+	SnapRevision func() string
 }
 
 //+kubebuilder:rbac:groups=microk8s.canonical.com,resources=configurations;microk8snodes,verbs=get;list;watch;create;update;patch;delete
@@ -78,7 +85,7 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	for registry, toml := range spec.ContainerdRegistryConfigs {
 		log := log.WithValues("registry", registry)
-		dir := filepath.Join(r.SnapData, "args", "certs.d", registry)
+		dir := filepath.Join(r.RegistryCertsDir, registry)
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			log.Error(err, "Failed to setup directories for registry")
 			continue
@@ -93,7 +100,7 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	for _, repo := range spec.AddonRepositories {
 		log := log.WithValues("repository", repo.Name)
-		dir := filepath.Join(r.SnapCommon, "addons", repo.Name)
+		dir := filepath.Join(r.AddonsDir, repo.Name)
 		if err := os.RemoveAll(dir); err != nil {
 			log.Error(err, "Failed to cleanup dir")
 			continue
@@ -128,7 +135,7 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 
-	node.Status.Version = "!!!!"
+	node.Status.Version = r.SnapRevision()
 	if err := r.Client.Status().Update(ctx, node); err != nil {
 		log.Error(err, "Failed to patch microk8s node")
 	}

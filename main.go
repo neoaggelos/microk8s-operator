@@ -17,13 +17,19 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
 	"os"
+	"path/filepath"
+	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	"github.com/snapcore/snapd/client"
+	snapdclient "github.com/snapcore/snapd/client"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -107,12 +113,46 @@ func main() {
 		os.Exit(1)
 	}
 
+	snapClient := snapdclient.New(nil)
+
 	if err = (&controllers.ConfigurationReconciler{
-		Client:     mgr.GetClient(),
-		Scheme:     mgr.GetScheme(),
-		SnapData:   snapData,
-		SnapCommon: snapCommon,
-		Node:       nodeName,
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+
+		Node: nodeName,
+
+		RestartContainerd: func(ctx context.Context) error {
+			changeID, err := snapClient.Restart([]string{"microk8s.daemon-containerd"}, client.RestartOptions{Reload: false})
+			if err != nil {
+				return err
+			}
+
+			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			defer cancel()
+
+			for {
+				if change, err := snapClient.Change(changeID); err != nil {
+					return err
+				} else if change.Ready {
+					return nil
+				}
+				select {
+				case <-ctx.Done():
+					return fmt.Errorf("timed out waiting for containerd restart")
+				case <-time.After(time.Second):
+				}
+			}
+		},
+		RegistryCertsDir: filepath.Join(snapData, "args", "certs.d"),
+
+		AddonsDir: filepath.Join(snapCommon, "addons"),
+		SnapRevision: func() string {
+			r, err := snapClient.List([]string{"microk8s"}, nil)
+			if err != nil || len(r) == 0 {
+				return ""
+			}
+			return r[0].Revision.String()
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Configuration")
 		os.Exit(1)

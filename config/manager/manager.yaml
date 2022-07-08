@@ -39,6 +39,10 @@ spec:
         hostPath:
           path: /var/snap/microk8s
           type: Directory
+      - name: snap-socket
+        hostPath:
+          path: /run/snapd.socket
+          type: Socket
       containers:
       - command:
         - /manager
@@ -49,7 +53,9 @@ spec:
           allowPrivilegeEscalation: false
         volumeMounts:
           - name: var-snap
-            mountPath: /var/snap/microk8s
+            mountPath: /host/var-snap-microk8s
+          - name: snap-socket
+            mountPath: /host/run-snapd.socket
         livenessProbe:
           httpGet:
             path: /healthz
@@ -68,9 +74,11 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
           - name: SNAP_DATA
-            value: /var/snap/microk8s/current
+            value: /host/var-snap-microk8s/current
           - name: SNAP_COMMON
-            value: /var/snap/microk8s/common
+            value: /host/var-snap-microk8s/common
+          - name: SNAP_SOCKET
+            value: /host/run-snapd.socket
         resources:
           limits:
             cpu: 500m

@@ -349,9 +349,11 @@ spec:
             fieldRef:
               fieldPath: spec.nodeName
         - name: SNAP_DATA
-          value: /var/snap/microk8s/current
+          value: /host/var-snap-microk8s/current
         - name: SNAP_COMMON
-          value: /var/snap/microk8s/common
+          value: /host/var-snap-microk8s/common
+        - name: SNAP_SOCKET
+          value: /host/run-snapd.socket
         image: neoaggelos/microk8s-operator:0.0.1-dev2
         livenessProbe:
           httpGet:
@@ -376,8 +378,10 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
         volumeMounts:
-        - mountPath: /var/snap/microk8s
+        - mountPath: /host/var-snap-microk8s
           name: var-snap
+        - mountPath: /host/run-snapd.socket
+          name: snap-socket
       hostNetwork: true
       securityContext:
         runAsUser: 0
@@ -388,3 +392,7 @@ spec:
           path: /var/snap/microk8s
           type: Directory
         name: var-snap
+      - hostPath:
+          path: /run/snapd.socket
+          type: Socket
+        name: snap-socket
