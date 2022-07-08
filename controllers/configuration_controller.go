@@ -23,7 +23,6 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	microk8sv1alpha1 "github.com/neoaggelos/microk8s-operator/api/v1alpha1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -46,9 +45,7 @@ type ConfigurationReconciler struct {
 	RestartContainerd func(ctx context.Context) error
 
 	// MicroK8s specific information
-	AddonsDir    string
-	SnapRevision func(ctx context.Context) string
-	SnapChannel  func(ctx context.Context) string
+	AddonsDir string
 }
 
 //+kubebuilder:rbac:groups=microk8s.canonical.com,resources=configurations;microk8snodes,verbs=get;list;watch;create;update;patch;delete
@@ -120,7 +117,7 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	node := &microk8sv1alpha1.MicroK8sNode{}
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: r.Node}, node); err != nil {
-		if !errors.IsNotFound(err) {
+		if !apierrors.IsNotFound(err) {
 			log.Error(err, "Failed to retrieve current node")
 			return ctrl.Result{}, err
 		}
@@ -134,12 +131,6 @@ func (r *ConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: r.Node}, node); err != nil {
 		log.Error(err, "Failed to retrieve current node")
 		return ctrl.Result{}, err
-	}
-
-	node.Status.Revision = r.SnapRevision(ctx)
-	node.Status.Channel = r.SnapChannel(ctx)
-	if err := r.Client.Status().Update(ctx, node); err != nil {
-		log.Error(err, "Failed to patch microk8s node")
 	}
 
 	return ctrl.Result{}, nil

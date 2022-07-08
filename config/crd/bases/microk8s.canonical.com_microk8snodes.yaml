@@ -17,8 +17,8 @@ spec:
   versions:
   - additionalPrinterColumns:
     - description: age
-      jsonPath: .metadata.creationTimestamp
-      name: Age
+      jsonPath: .status.lastUpdate
+      name: LastUpdate
       type: date
     - description: Installed revision
       jsonPath: .status.revision
@@ -26,8 +26,12 @@ spec:
       type: string
     - description: Tracking channel
       jsonPath: .status.channel
-      name: Revision
+      name: Channel
       type: string
+    - description: age
+      jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -51,11 +55,17 @@ spec:
               channel:
                 description: Channel is the channel MicroK8s is tracking.
                 type: string
+              lastUpdate:
+                description: LastUpdate is the timestamp of the last update of this
+                  node.
+                format: date-time
+                type: string
               revision:
                 description: Revision is the installed MicroK8s snap revision.
                 type: string
             required:
             - channel
+            - lastUpdate
             - revision
             type: object
         type: object

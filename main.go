@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -149,6 +150,25 @@ func main() {
 		RegistryCertsDir: filepath.Join(snapData, "args", "certs.d"),
 
 		AddonsDir: filepath.Join(snapCommon, "addons"),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Configuration")
+		os.Exit(1)
+	}
+	//+kubebuilder:scaffold:builder
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
+
+	nodeController := &controllers.MicroK8sNodeController{
+		Client:   mgr.GetClient(),
+		Interval: 5 * time.Second,
+		Node:     nodeName,
 		SnapRevision: func(ctx context.Context) string {
 			log := log.FromContext(ctx)
 			r, err := snapClient.List([]string{"microk8s"}, nil)
@@ -167,24 +187,31 @@ func main() {
 			}
 			return r[0].TrackingChannel
 		},
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Configuration")
-		os.Exit(1)
-	}
-	//+kubebuilder:scaffold:builder
-
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
-		os.Exit(1)
-	}
-	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
-		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
-		os.Exit(1)
-	}
+	ctx, cancel := context.WithCancel(ctrl.SetupSignalHandler())
+	defer cancel()
+	wg := sync.WaitGroup{}
+
+	wg.Add(1)
+	go func() {
+		setupLog.Info("starting node controller")
+		if err := nodeController.Run(ctx); err != nil {
+			setupLog.Error(err, "problem running node controller")
+			cancel()
+		}
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		setupLog.Info("starting manager")
+		if err := mgr.Start(ctx); err != nil {
+			setupLog.Error(err, "problem running manager")
+			cancel()
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
 }

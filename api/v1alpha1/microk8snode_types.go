@@ -28,6 +28,9 @@ type MicroK8sNodeStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
+	// LastUpdate is the timestamp of the last update of this node.
+	LastUpdate metav1.Time `json:"lastUpdate"`
+
 	// Revision is the installed MicroK8s snap revision.
 	Revision string `json:"revision"`
 
@@ -38,9 +41,10 @@ type MicroK8sNodeStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster
-// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="age"
+// +kubebuilder:printcolumn:name="LastUpdate",type="date",JSONPath=".status.lastUpdate",description="age"
 // +kubebuilder:printcolumn:name="Revision",type="string",JSONPath=".status.revision",description="Installed revision"
-// +kubebuilder:printcolumn:name="Revision",type="string",JSONPath=".status.channel",description="Tracking channel"
+// +kubebuilder:printcolumn:name="Channel",type="string",JSONPath=".status.channel",description="Tracking channel"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description="age"
 
 // MicroK8sNode is the Schema for the microk8snodes API
 type MicroK8sNode struct {
