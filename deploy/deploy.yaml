@@ -376,15 +376,15 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
         volumeMounts:
-        - mountPath: /var/snap/microk8s/current
-          name: config
+        - mountPath: /var/snap/microk8s
+          name: var-snap
       hostNetwork: true
       securityContext:
-        runAsNonRoot: true
+        runAsUser: 0
       serviceAccountName: microk8s-operator-controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
       - hostPath:
-          path: /var/snap/microk8s/current
+          path: /var/snap/microk8s
           type: Directory
-        name: config
+        name: var-snap

@@ -25,7 +25,8 @@ spec:
     spec:
       hostNetwork: true
       securityContext:
-        runAsNonRoot: true
+        runAsUser: 0
+        # runAsNonRoot: true
         # TODO(user): For common cases that do not require escalating privileges
         # it is recommended to ensure that all your Pods/Containers are restrictive.
         # More info: https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted
@@ -34,9 +35,9 @@ spec:
         # seccompProfile:
         #   type: RuntimeDefault
       volumes:
-      - name: config
+      - name: var-snap
         hostPath:
-          path: /var/snap/microk8s/current
+          path: /var/snap/microk8s
           type: Directory
       containers:
       - command:
@@ -47,8 +48,8 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
         volumeMounts:
-          - name: config
-            mountPath: /var/snap/microk8s/current
+          - name: var-snap
+            mountPath: /var/snap/microk8s
         livenessProbe:
           httpGet:
             path: /healthz
