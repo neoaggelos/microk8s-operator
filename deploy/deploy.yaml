@@ -404,7 +404,7 @@ spec:
           value: /host/var-snap-microk8s/common
         - name: SNAP_SOCKET
           value: /host/run-snapd.socket
-        image: neoaggelos/microk8s-operator:0.0.1-dev22
+        image: neoaggelos/microk8s-operator:0.0.1-dev23
         livenessProbe:
           httpGet:
             path: /healthz
