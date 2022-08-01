@@ -54,7 +54,7 @@ func mergeConfigSpecs(base, overrides microk8sv1alpha1.ConfigurationSpec) microk
 
 func updateFile(file string, newContents string, perm fs.FileMode) (bool, error) {
 	b, err := os.ReadFile(file)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return false, fmt.Errorf("failed to read file: %w", err)
 	}
 	if string(b) == newContents {
